@@ -28,7 +28,7 @@ const onSearchFormSubmit = async event => {
   try {
     const response = await pixabayAPI.fetchPhotos();
     const totalHits = response.data.totalHits;
-    console.log(totalHits);
+
     pixabayAPI.totalHits = totalHits;
 
     if (response.data.hits.length === 0) {
@@ -65,12 +65,15 @@ const onSearchFormSubmit = async event => {
 // LOAD MORE IMAGES by Button
 const onLoadMoreBtnClick = async event => {
   pixabayAPI.page += 1;
-  console.log(pixabayAPI.page);
 
   try {
     pixabayAPI.fetchPhotos().then(response => {
       if (pixabayAPI.page * pixabayAPI.per_page > pixabayAPI.totalHits) {
         loadMoreBtnEl.classList.add('is-hidden');
+        console.log('yes');
+        Notiflix.Notify.failure(
+          'We are sorry, but you have reached the end of search results.'
+        );
       }
 
       galleryEl.insertAdjacentHTML(
