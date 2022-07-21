@@ -10,14 +10,13 @@ const loadMoreBtnEl = document.querySelector('.load-more');
 
 const pixabayAPI = new PixabayAPI();
 
-//Notification more 500 images
+//Notification How many images?
 const foundTotalHits = totalHits => {
-  if (totalHits >= 500) {
-    Notiflix.Notify.success('Hooray! We found totalHits images.');
-  }
+  Notiflix.Notify.success(`Hooray! We found ${totalHits} images.`);
 };
 
-const onSearchFormSubmit = event => {
+//Search items by SUBMIT
+const onSearchFormSubmit = async event => {
   event.preventDefault();
 
   const {
@@ -26,47 +25,51 @@ const onSearchFormSubmit = event => {
 
   pixabayAPI.query = searchQuery.value;
 
-  pixabayAPI
-    .fetchPhotos()
-    .then(response => {
-      console.log(response.data);
-      const totalHits = response.data.totalHits;
+  try {
+    const response = await pixabayAPI.fetchPhotos();
+    const totalHits = response.data.totalHits;
+    console.log(totalHits);
+    pixabayAPI.totalHits = totalHits;
 
-      if (response.data.hits.length === 0) {
-        galleryEl.innerHTML = '';
-        Notiflix.Notify.failure(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-        loadMoreBtnEl.classList.add('is-hidden');
-        return;
-      } else if (response.data.hits.length < 40) {
-        galleryEl.innerHTML = createGalleryCards(response.data.hits);
-        loadMoreBtnEl.classList.add('is-hidden');
-        return;
-      }
+    if (response.data.hits.length === 0) {
+      galleryEl.innerHTML = '';
+      Notiflix.Notify.failure(
+        'Sorry, there are no images matching your search query. Please try again.'
+      );
+      loadMoreBtnEl.classList.add('is-hidden');
+      return;
+    }
 
-      galleryEl.innerHTML = createGalleryCards(response.data.hits);
-
+    if (pixabayAPI.page * pixabayAPI.per_page > pixabayAPI.totalHits) {
+      loadMoreBtnEl.classList.add('is-hidden');
+    } else {
       loadMoreBtnEl.classList.remove('is-hidden');
+    }
 
-      gallery.refresh();
-
-      //Notification more 500 images
-      foundTotalHits(totalHits);
-    })
-
-    .catch(err => {
-      Notiflix.Notify.failure(err);
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
     });
+
+    galleryEl.innerHTML = createGalleryCards(response.data.hits);
+
+    gallery.refresh();
+
+    //Notification  How many images?
+    foundTotalHits(totalHits);
+  } catch {
+    Notiflix.Notify.failure(err);
+  }
 };
 
-const onLoadMoreBtnClick = event => {
+// LOAD MORE IMAGES by Button
+const onLoadMoreBtnClick = async event => {
   pixabayAPI.page += 1;
+  console.log(pixabayAPI.page);
 
-  pixabayAPI
-    .fetchPhotos()
-    .then(response => {
-      if (response.data.hits.length < 40) {
+  try {
+    pixabayAPI.fetchPhotos().then(response => {
+      if (pixabayAPI.page * pixabayAPI.per_page > pixabayAPI.totalHits) {
         loadMoreBtnEl.classList.add('is-hidden');
       }
 
@@ -75,10 +78,10 @@ const onLoadMoreBtnClick = event => {
         createGalleryCards(response.data.hits)
       );
       gallery.refresh();
-    })
-    .catch(err => {
-      Notiflix.Notify.failure(err);
     });
+  } catch {
+    Notiflix.Notify.failure(err);
+  }
 };
 
 const gallery = new SimpleLightbox('.gallery a', {
