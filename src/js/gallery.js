@@ -66,15 +66,22 @@ const onSearchFormSubmit = async event => {
 const onLoadMoreBtnClick = async event => {
   pixabayAPI.page += 1;
 
+  if (pixabayAPI.page * pixabayAPI.per_page > pixabayAPI.totalHits) {
+    loadMoreBtnEl.classList.add('is-hidden');
+    Notiflix.Notify.failure(
+      'We are sorry, but you have reached the end of search results.'
+    );
+  }
+
   try {
     pixabayAPI.fetchPhotos().then(response => {
-      if (pixabayAPI.page * pixabayAPI.per_page > pixabayAPI.totalHits) {
-        loadMoreBtnEl.classList.add('is-hidden');
-        console.log('yes');
-        Notiflix.Notify.failure(
-          'We are sorry, but you have reached the end of search results.'
-        );
-      }
+      // if (pixabayAPI.page * pixabayAPI.per_page > pixabayAPI.totalHits) {
+      //   loadMoreBtnEl.classList.add('is-hidden');
+      //   console.log('yes');
+      //   Notiflix.Notify.failure(
+      //     'We are sorry, but you have reached the end of search results.'
+      //   );
+      // }
 
       galleryEl.insertAdjacentHTML(
         'beforeend',
